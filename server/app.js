@@ -54,7 +54,8 @@ app.post('/data', function(req,res){
         //console.log(query);
         //client.query(query);
 
-        client.query("INSERT INTO people (name, location) VALUES ($1, $2) RETURNING id", [addedPerson.name, addedPerson.location],
+        client.query("INSERT INTO people (name, location, spirit_animal, address) VALUES ($1, $2, $3, $4) RETURNING id",
+            [addedPerson.name, addedPerson.location, addedPerson.spirit_animal, addedPerson.address],
             function(err, result) {
                 if(err) {
                     console.log("Error inserting data: ", err);
@@ -71,12 +72,17 @@ app.post('/data', function(req,res){
 app.delete('/data', function(req,res){
     console.log(req.body.id);
 
-    Person.findByIdAndRemove({"_id" : req.body.id}, function(err, data){
-        if(err) console.log(err);
-        res.send(data);
+    pg.connect(connectionString, function (err, client){
+        // Need to call the update DOM
+        client.query("DELETE FROM people WHERE id = " + req.body.id),
+            function(err, result) {
+                if (err) {
+                    console.log("Error inserting data: ", err);
+                    res.send(false);
+                }
+                res.send(true);
+            }
     });
-
-
 });
 
 app.get("/*", function(req,res){

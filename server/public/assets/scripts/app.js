@@ -69,7 +69,7 @@ function updateDOM(data){
                   "<p>" + data[i].name + "</p>" +
                   "<p>" + data[i].location + "</p>" +
                   "<button class='delete btn btn-danger' data-id='" +
-                     data[i]._id + "'>Delete</button>" +
+                     data[i].id + "'>Delete</button>" +
                "</div>";
 
       $("#peopleContainer").append(el);
