@@ -1,4 +1,5 @@
 $(document).ready(function(){
+
    $("#search").submit(function(event){
       event.preventDefault();
       var values = {};
@@ -6,15 +7,40 @@ $(document).ready(function(){
       $.each($(this).serializeArray(), function(i, field){
          values[field.name] = field.value;
       });
+      if(values){
+         findPerson(values);
+      }
+      else{
+         getData();
+      }
 
-      getData(values);
+
    });
 
    $("#addSomeone").submit(addSomeone);
-   $("#peopleContainer").on('click', '.delete', deletePerson);
-
+   $("#peopleContainer").on('click', '.delete', function(){
+      deletePerson($(this).data("id"));
+      $(this).parent().remove();
+   });
    getData();
 });
+
+
+function findPerson(values){
+   $.ajax({
+      type: "GET",
+      url: "/find",
+      data: values,
+      beforeSend: function(){
+         console.log(values);
+      },
+      success: function(data){
+
+         updateDOM(data);
+      }
+   })
+}
+
 
 function getData(values){
    $.ajax({
@@ -45,8 +71,8 @@ function addSomeone(){
    });
 }
 
-function deletePerson(){
-   var deletedId = {"id" : $(this).data("id")};
+function deletePerson(id){
+   var deletedId = {"id": id};
 
    console.log("Meaningful Log: ", deletedId);
 
@@ -54,11 +80,12 @@ function deletePerson(){
       type: "DELETE",
       url: "/data",
       data: deletedId,
-      success: function(data){
+      success: function (data) {
+         console.log("This is the Delete Call: ", data);
 
-         getData();
       }
-   })
+
+   });
 }
 
 function updateDOM(data){

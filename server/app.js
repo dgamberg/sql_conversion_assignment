@@ -36,23 +36,58 @@ app.get('/data', function(req,res){
     });
 });
 
+app.get('/find', function(req, res){
+
+        var results = [];
+        console.log("find this:", req.query.peopleSearch);
+
+        //SQL Query > SELECT data from table
+        pg.connect(connectionString, function (err, client, done) {
+            //var q = "SELECT name FROM people WHERE name LIKE '" + req.query.peopleSearch + "%'";
+            //console.log(q);
+            var query = client.query("SELECT * FROM people WHERE name LIKE '" + req.query.peopleSearch + "%'");
+
+            // Stream results back one row at a time, push into results array
+            query.on('row', function (row) {
+                results.push(row);
+            });
+
+            // After all data is returned, close connection and return results
+            query.on('end', function () {
+                client.end();
+                return res.json(results);
+            });
+
+            // Handle Errors
+            if (err) {
+                console.log("FIND ERROR", err);
+            }
+        });
+});
+//    pg.connect(connectionString, function (err, client) {
+//        client.query("SELECT name FROM people WHERE name LIKE " + req.query + "%"),
+//            function(err, result) {
+//                if(err) {
+//                    console.log("Error reading data: ", err);
+//                    res.send(false);
+//                }
+//                res.send(true);
+//            }
+//    });
+//});
+
+
+
+
+
 // Add a new person
 app.post('/data', function(req,res){
-    console.log(req);
-
     var addedPerson = {
         "name" : req.body.peopleAdd,
         "location" : req.body.locationAdd
     };
 
     pg.connect(connectionString, function (err, client) {
-        //SQL Query > Insert Data
-        //Uses prepared statements, the $1 and $2 are placeholder variables. PSQL then makes sure they are relatively safe values
-        //and then uses them when it executes the query.
-
-        //var query = "INSERT INTO people (name, location) VALUES ('" + addedPerson.name + "', '" + addedPerson.location + "')";
-        //console.log(query);
-        //client.query(query);
 
         client.query("INSERT INTO people (name, location, spirit_animal, address) VALUES ($1, $2, $3, $4) RETURNING id",
             [addedPerson.name, addedPerson.location, addedPerson.spirit_animal, addedPerson.address],
@@ -70,17 +105,18 @@ app.post('/data', function(req,res){
 });
 
 app.delete('/data', function(req,res){
-    console.log(req.body.id);
-
     pg.connect(connectionString, function (err, client){
-        // Need to call the update DOM
+
         client.query("DELETE FROM people WHERE id = " + req.body.id),
             function(err, result) {
+                console.log("This is Result: ", result);
                 if (err) {
                     console.log("Error inserting data: ", err);
                     res.send(false);
                 }
+                console.log("req.body.id : ", req.body.id);
                 res.send(true);
+
             }
     });
 });
